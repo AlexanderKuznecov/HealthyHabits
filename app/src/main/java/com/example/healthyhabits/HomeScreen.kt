@@ -12,15 +12,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.healthyhabits.model.Habit
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.healthyhabits.ui.HomeViewModel
+
 
 @Composable
-fun HomeScreen(onAddHabitClick: () -> Unit) {
-    // временни примерни навици
-    val sampleHabits = listOf(
-        Habit(id = 1, name = "Пиене на вода", description = "8 чаши на ден"),
-        Habit(id = 2, name = "Разходка", description = "30 минути навън"),
-        Habit(id = 3, name = "Четене", description = "15 минути книга")
-    )
+fun HomeScreen(
+    onAddHabitClick: () -> Unit,
+    viewModel: HomeViewModel
+) {
+    val habits = viewModel.habits
 
     androidx.compose.material3.Scaffold(
         floatingActionButton = {
@@ -45,13 +46,14 @@ fun HomeScreen(onAddHabitClick: () -> Unit) {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(sampleHabits) { habit ->
+                items(habits) { habit ->
                     HabitItem(habit = habit)
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun HabitItem(habit: Habit) {

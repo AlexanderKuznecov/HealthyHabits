@@ -11,7 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AddHabitScreen(onBackClick: () -> Unit) {
+fun AddHabitScreen(
+    onBackClick: () -> Unit,
+    onSaveHabit: (String, String) -> Unit
+) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -48,8 +51,7 @@ fun AddHabitScreen(onBackClick: () -> Unit) {
 
         Button(
             onClick = {
-                // по-късно тук ще запазваме в база
-                onBackClick()
+                onSaveHabit(name, description)
             },
             modifier = Modifier.fillMaxWidth()
         ) {

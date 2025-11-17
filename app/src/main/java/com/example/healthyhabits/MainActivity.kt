@@ -17,6 +17,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.healthyhabits.ui.theme.HealthyHabitsTheme
 import com.example.healthyhabits.model.Habit
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.healthyhabits.ui.HomeViewModel
+
 
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +28,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             HealthyHabitsTheme {
                 val navController = rememberNavController()
+
+                // общ ViewModel за двата екрана
+                val homeViewModel: HomeViewModel = viewModel()
 
                 Scaffold { innerPadding ->
                     NavHost(
@@ -36,12 +42,22 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 onAddHabitClick = {
                                     navController.navigate("addHabit")
-                                }
+                                },
+                                viewModel = homeViewModel
                             )
                         }
                         composable("addHabit") {
                             AddHabitScreen(
                                 onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onSaveHabit = { name, description ->
+                                    // викаме ViewModel – добавяме навика
+                                    homeViewModel.addHabit(
+                                        name = name,
+                                        description = description.ifBlank { null }
+                                    )
+                                    // връщаме се към Home
                                     navController.popBackStack()
                                 }
                             )
@@ -49,6 +65,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
         }
     }
 }
