@@ -51,10 +51,32 @@ fun HomeScreen(
     val context = LocalContext.current
     val completionPercent = calculateCompletionPercentage(habits)
 
+    val totalHabits = habits.size
+    val completedHabits = habits.count { it.isCompleted }
+
     // кой навик редактираме
     var habitToEdit by remember { mutableStateOf<Habit?>(null) }
     // кой навик искаме да изтрием
     var habitToDelete by remember { mutableStateOf<Habit?>(null) }
+
+    // групиране по (ден, дата) – денят и датата се вадят от описанието
+    val groupedHabits: Map<Pair<String?, String?>, List<Habit>> = remember(habits) {
+        habits.groupBy { habit ->
+            val rawDescription = habit.description.orEmpty()
+            val lines = rawDescription
+                .lines()
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+
+            val dateLine = lines.firstOrNull { it.startsWith("Дата:") }
+            val dayLine = lines.firstOrNull { it.startsWith("Ден:") }
+
+            val day = dayLine?.removePrefix("Ден:")?.trim()
+            val date = dateLine?.removePrefix("Дата:")?.trim()
+
+            day to date
+        }
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -81,52 +103,68 @@ fun HomeScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = "Общо: $totalHabits   Завършени: $completedHabits",
+                style = MaterialTheme.typography.bodySmall
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(habits) { habit ->
-                    HabitItem(
-                        habit = habit,
-                        onToggleCompleted = { selected ->
-                            viewModel.toggleHabitCompleted(selected)
-                        },
-                        onDelete = { selected ->
-                            habitToDelete = selected
-                        },
-                        onShare = { selected ->
-                            val shareText = buildString {
-                                append("Навик: ${selected.name}\n")
-                                if (!selected.description.isNullOrEmpty()) {
-                                    append("Описание: ${selected.description}\n")
+                // за всяка група ден/дата – заглавие + елементите
+                groupedHabits.forEach { (dayDatePair, habitsInGroup) ->
+                    val (day, date) = dayDatePair
+
+                    item {
+                        DayHeader(day = day, date = date)
+                    }
+
+                    items(habitsInGroup) { habit ->
+                        HabitItem(
+                            habit = habit,
+                            onToggleCompleted = { selected ->
+                                viewModel.toggleHabitCompleted(selected)
+                            },
+                            onDelete = { selected ->
+                                habitToDelete = selected
+                            },
+                            onShare = { selected ->
+                                val shareText = buildString {
+                                    append("Навик: ${selected.name}\n")
+                                    if (!selected.description.isNullOrEmpty()) {
+                                        append("Описание: ${selected.description}\n")
+                                    }
+                                    append("Статус: ")
+                                    append(
+                                        if (selected.isCompleted)
+                                            "завършен ✅"
+                                        else
+                                            "в процес ⏳"
+                                    )
                                 }
-                                append("Статус: ")
-                                append(
-                                    if (selected.isCompleted)
-                                        "завършен ✅"
-                                    else
-                                        "в процес ⏳"
-                                )
-                            }
 
-                            val intent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(
-                                    Intent.EXTRA_SUBJECT,
-                                    "Моят навик от HealthyHabits+"
-                                )
-                                putExtra(Intent.EXTRA_TEXT, shareText)
-                            }
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(
+                                        Intent.EXTRA_SUBJECT,
+                                        "Моят навик от HealthyHabits+"
+                                    )
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                }
 
-                            val chooser =
-                                Intent.createChooser(intent, "Сподели навика чрез...")
-                            context.startActivity(chooser)
-                        },
-                        onEdit = { selected ->
-                            habitToEdit = selected
-                        }
-                    )
+                                val chooser =
+                                    Intent.createChooser(intent, "Сподели навика чрез...")
+                                context.startActivity(chooser)
+                            },
+                            onEdit = { selected ->
+                                habitToEdit = selected
+                            }
+                        )
+                    }
                 }
             }
 
@@ -178,6 +216,47 @@ fun HomeScreen(
                 )
             }
         }
+    }
+}
+
+/**
+ * Заглавие на група – ден + дата
+ */
+@Composable
+fun DayHeader(
+    day: String?,
+    date: String?
+) {
+    val label = when {
+        day != null && date != null -> "$day – $date"
+        day != null -> day
+        date != null -> date
+        else -> "Без посочен ден"
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(20.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(2.dp)
+                )
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
