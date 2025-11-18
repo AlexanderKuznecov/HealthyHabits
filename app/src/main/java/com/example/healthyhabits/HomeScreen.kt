@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.healthyhabits.model.Habit
 import com.example.healthyhabits.ui.HomeViewModel
+import androidx.compose.material3.Checkbox
+import androidx.compose.ui.text.style.TextDecoration
+
 
 @Composable
 fun HomeScreen(
@@ -47,31 +50,61 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(habits) { habit ->
-                    HabitItem(habit = habit)
+                    HabitItem(
+                        habit = habit,
+                        onToggleCompleted = { selected ->
+                            viewModel.toggleHabitCompleted(selected)
+                        }
+                    )
                 }
+
             }
         }
     }
 }
 
 @Composable
-fun HabitItem(habit: Habit) {
+fun HabitItem(
+    habit: Habit,
+    onToggleCompleted: (Habit) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = habit.name,
-                style = MaterialTheme.typography.titleMedium
+        Row(
+            modifier = Modifier
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = habit.isCompleted,
+                onCheckedChange = {
+                    onToggleCompleted(habit)
+                }
             )
-            if (!habit.description.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column {
                 Text(
-                    text = habit.description,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = habit.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    textDecoration = if (habit.isCompleted) {
+                        TextDecoration.LineThrough
+                    } else {
+                        TextDecoration.None
+                    }
                 )
+                if (!habit.description.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = habit.description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
 }
+

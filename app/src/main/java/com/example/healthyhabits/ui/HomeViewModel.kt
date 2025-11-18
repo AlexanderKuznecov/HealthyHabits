@@ -34,6 +34,22 @@ class HomeViewModel(
         }
     }
 
+    fun toggleHabitCompleted(habit: Habit) {
+        viewModelScope.launch {
+            val updated = habit.copy(
+                isCompleted = !habit.isCompleted
+            )
+            repository.updateHabit(updated)
+        }
+    }
+
+    fun deleteHabit(habit: Habit) {
+        viewModelScope.launch {
+            repository.deleteHabit(habit)
+        }
+    }
+
+
     // --- FACTORY ---
     class Factory(
         private val repository: HabitRepository
