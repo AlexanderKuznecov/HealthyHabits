@@ -29,6 +29,7 @@ fun HomeScreen(
     viewModel: HomeViewModel
 ) {
     val habits by viewModel.habits.collectAsState()
+    val context = LocalContext.current
 
     androidx.compose.material3.Scaffold(
         floatingActionButton = {
@@ -61,9 +62,29 @@ fun HomeScreen(
                         },
                         onDelete = { selected ->
                             viewModel.deleteHabit(selected)
+                        },
+                        onShare = { selected ->
+                            val shareText = buildString {
+                                append("Навик: ${selected.name}\n")
+                                if (!selected.description.isNullOrEmpty()) {
+                                    append("Описание: ${selected.description}\n")
+                                }
+                                append("Статус: ")
+                                append(if (selected.isCompleted) "завършен ✅" else "в процес ⏳")
+                            }
+
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_SUBJECT, "Моят навик от HealthyHabits+")
+                                putExtra(Intent.EXTRA_TEXT, shareText)
+                            }
+
+                            val chooser = Intent.createChooser(intent, "Сподели навика чрез...")
+                            context.startActivity(chooser)
                         }
                     )
                 }
+
             }
         }
     }
@@ -73,7 +94,8 @@ fun HomeScreen(
 fun HabitItem(
     habit: Habit,
     onToggleCompleted: (Habit) -> Unit,
-    onDelete: (Habit) -> Unit
+    onDelete: (Habit) -> Unit,
+    onShare: (Habit) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -114,13 +136,23 @@ fun HabitItem(
                 }
             }
 
-            TextButton(
-                onClick = { onDelete(habit) }
+            Column(
+                horizontalAlignment = Alignment.End
             ) {
-                Text("Изтрий")
+                TextButton(
+                    onClick = { onShare(habit) }
+                ) {
+                    Text("Сподели")
+                }
+                TextButton(
+                    onClick = { onDelete(habit) }
+                ) {
+                    Text("Изтрий")
+                }
             }
         }
     }
 }
+
 
 
