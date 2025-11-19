@@ -128,7 +128,7 @@ HealthyHabits+ използва **MVVM + Repository + Hilt + Room**.
 ## 6. Стъпки за стартиране на проекта
 
 ### Клонирайте репозиторито:
-git clone https://github.com/AlexanderKuznecov/HealthyHabits
+git clone https://github.com/AlexanderKuznecov/MobileApps2025-2301321059
 Отворете проекта в Android Studio (Giraffe или по-нова)
 
 ### Изчакайте Gradle да се синхронизира автоматично
